@@ -3,6 +3,9 @@ title: "Tree based Ensemble"
 author: "Masanao Yajima"
 date: "2023-01-05"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -52,7 +55,9 @@ show_code <- TRUE
 
 ### Bank Credit Data
 
-Please take a look at the following credit scoring data set. This data was used to predict defaults on consumer loans. The data contains  1000 rows and 21 variables:
+Please take a look at the following credit scoring data set.
+This data was used to predict defaults on consumer loans.
+The data contains 1000 rows and 21 variables:
 
 ```{r}
 credit_data <- read.csv("credit_data.csv")
@@ -60,29 +65,30 @@ credit_data <- read.csv("credit_data.csv")
 
 Here are the variables.
 
-- BAD: factor, GOOD/BAD for whether a customer has defaulted on a loan. This is the outcome or target in this dataset
-- Account_status: factor, status of existing checking account
-- Duration: numeric, loan duration in month
-- Credit_history: factor, previous credit history
-- Purpose: factor, loan purpose
-- Amount: numeric, credit amount
-- Savings: factor, savings account/bonds
-- Employment: factor, present employment since
-- Installment_rate: numeric, installment rate in percentage of disposable income
-- Guarantors: factor, other debtors / guarantors
-- Resident_since: factor, present residence since
-- Property: factor, property
-- Age: numeric, age in years
-- Other_plans: factor, other installment plans (bank ,none, stores )
-- Housing: factor, housing
-- Num_credits: numeric, Number of existing credits at this bank
-- Job: factor, job( management / self-employed / highly qualified employee / officer; skilled employee / official ; unemployed / unskilled - non-resident ; unskilled - resident )
-- People_maintenance: numeric, number of people being liable to provide maintenance for
-- Phone: factor, telephone (none ; yes, registered under the customers name )
-- Foreign: factor, foreign worker ( no ; yes )
-- Female: factor, female/male for gender
+-   BAD: factor, GOOD/BAD for whether a customer has defaulted on a loan. This is the outcome or target in this dataset
+-   Account_status: factor, status of existing checking account
+-   Duration: numeric, loan duration in month
+-   Credit_history: factor, previous credit history
+-   Purpose: factor, loan purpose
+-   Amount: numeric, credit amount
+-   Savings: factor, savings account/bonds
+-   Employment: factor, present employment since
+-   Installment_rate: numeric, installment rate in percentage of disposable income
+-   Guarantors: factor, other debtors / guarantors
+-   Resident_since: factor, present residence since
+-   Property: factor, property
+-   Age: numeric, age in years
+-   Other_plans: factor, other installment plans (bank ,none, stores )
+-   Housing: factor, housing
+-   Num_credits: numeric, Number of existing credits at this bank
+-   Job: factor, job( management / self-employed / highly qualified employee / officer; skilled employee / official ; unemployed / unskilled - non-resident ; unskilled - resident )
+-   People_maintenance: numeric, number of people being liable to provide maintenance for
+-   Phone: factor, telephone (none ; yes, registered under the customers name )
+-   Foreign: factor, foreign worker ( no ; yes )
+-   Female: factor, female/male for gender
 
 Create a predictive model that predicts the outcome `BAD`.
+
 ```{r}
 set.seed(77)
 val_percent <- 0.3
@@ -92,7 +98,9 @@ credit_data_train <- credit_data[-val_idx, ]
 credit_data_valid <- credit_data[ val_idx, ]
 ```
 
-Evaluate your model performance.  What criteria do you think will be appropriate.
+Evaluate your model performance.
+What criteria do you think will be appropriate.
+
 ```{r}
 #
 #
@@ -100,11 +108,10 @@ Evaluate your model performance.  What criteria do you think will be appropriate
 
 Comment of the result:
 
-~~~
-Please write your answer in full sentences.
+```         
+Sorry, I don't know how to evaluate the model without comparison.
 
-
-~~~
+```
 
 ### Ames Housing data
 
@@ -116,6 +123,7 @@ library(AmesHousing)
 ```
 
 Use data of `ames_raw` up to 2008 predict the housing price for the later years.
+
 ```{r,echo=show_code}
 # Do feature engineering if needed.
 ames_raw_2008=ames_raw[ames_raw$`Yr Sold`<2008,]
@@ -123,6 +131,7 @@ ames_raw_2009=ames_raw[ames_raw$`Yr Sold`>=2008,]
 ```
 
 Use the same loss function calculator.
+
 ```{r,echo=show_code}
 calc_loss<-function(prediction,actual){
   difpred <- actual-prediction
@@ -134,80 +143,102 @@ calc_loss<-function(prediction,actual){
   )
 }
 ```
-Apply CART and try to interpret the result that you get.  Be sure to fit the models on a training set and evaluate their performance on a test set.  Does it have a good prediction accuracy?
+
+Apply CART and try to interpret the result that you get.
+Be sure to fit the models on a training set and evaluate their performance on a test set.
+Does it have a good prediction accuracy?
 
 ```{r}
-#
-#
+set.seed(677)
+cart_model <- rpart(SalePrice ~ `Condition 1` + `House Style`, data = ames_raw_2008)
+predictions <- predict(cart_model, newdata = ames_raw_2009)
+actual_prices = ames_raw_2009$SalePrice
+loss_metrics = calc_loss(predictions, actual_prices)
+print(paste("RMSE:", loss_metrics[[1]]))
+print(paste("Operational Loss:", loss_metrics[[2]]))
 ```
 
 Comment of the result:
 
-~~~
+```         
 Please write your answer in full sentences.
 
+```
 
-~~~
-
-Apply boosting, bagging, random forests, and BART to the Ames Housing data set. Be sure to fit the models on a training set and evaluate their performance on a test set. How accurate are the results compared to simple linear regression methods? Which of these approaches yields the best performance?
+Apply boosting, bagging, random forests, and BART to the Ames Housing data set.
+Be sure to fit the models on a training set and evaluate their performance on a test set.
+How accurate are the results compared to simple linear regression methods?
+Which of these approaches yields the best performance?
 
 ```{r}
+#Boosting
+boost_model <- gbm(SalePrice ~ ., data = ames_raw_2008, distribution = "gaussian", n.trees = 5000, interaction.depth = 4, shrinkage = 0.01, cv.folds = 5)
+boost_predictions <- predict(boost_model, newdata = ames_raw_2009, n.trees = 5000)
+boost_rmse <- sqrt(mean((ames_raw_2009$SalePrice - boost_predictions)^2))
 
-#
-#
 ```
 
 Comment of the result:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 ## Problem Set
 
 ### Boston
 
-
-In the lab, we applied random forests to the Boston data using `mtry = 6`,  `ntree = 25`, and `ntree = 500`. Create a plot displaying the test error resulting from random forests on this data set for a more comprehensive range of values for `mtry` and `ntree`. You can model your plot after Figure 8.10. Describe the results obtained.
+In the lab, we applied random forests to the Boston data using `mtry = 6`, `ntree = 25`, and `ntree = 500`.
+Create a plot displaying the test error resulting from random forests on this data set for a more comprehensive range of values for `mtry` and `ntree`.
+You can model your plot after Figure 8.10.
+Describe the results obtained.
 
 ```{r}
 data(Boston,package = "ISLR2")
 ```
 
-###
+### 
 
-In the lab, a classification tree was applied to the Carseats data set after converting Sales into a qualitative response variable. Now we will seek to predict Sales using regression trees and related approaches, treating the response as a quantitative variable.
+In the lab, a classification tree was applied to the Carseats data set after converting Sales into a qualitative response variable.
+Now we will seek to predict Sales using regression trees and related approaches, treating the response as a quantitative variable.
 
 ```{r}
 data(Carseats,package = "ISLR2")
 ```
+
 (a) Split the data set into a training set and a test set.
+
 ```{r}
 
 ```
 
 (b) Fit a regression tree to the training set. Plot the tree, and interpret the results. What test MSE do you obtain?
+
 ```{r}
 
 ```
 
 (c) Use cross-validation in order to determine the optimal level of tree complexity. Does pruning the tree improve the test MSE?
+
 ```{r}
 
 ```
 
 (d) Use the bagging approach in order to analyze this data. What test MSE do you obtain? Use the importance() function to determine which variables are most important.
+
 ```{r}
 
 ```
 
 (e) Use random forests to analyze this data. What test MSE do you obtain? Use the importance() function to determine which variables are most important. Describe the effect of m, the number of variables considered at each split, on the error rate obtained.
+
 ```{r}
 
 ```
+
 (f) Now analyze the data using BART, and report your results.
+
 ```{r}
 
 ```
@@ -219,10 +250,11 @@ This problem involves the OJ data set which is part of the ISLR2 package.
 ```{r}
 data(OJ,package = "ISLR2")
 ```
- 
+
 (a) Create a training set containing a random sample of 800 observations, and a test set containing the remaining observations.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -230,15 +262,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (b) Fit a tree to the training data, with Purchase as the response and the other variables as predictors. Use the summary() function to produce summary statistics about the tree, and describe the results obtained. What is the training error rate? How many terminal nodes does the tree have?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -246,15 +278,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (c) Type in the name of the tree object in order to get a detailed text output. Pick one of the terminal nodes, and interpret the information displayed.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -262,13 +294,13 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (d) Create a plot of the tree, and interpret the results.
+
 ```{r}
 
 ```
@@ -276,6 +308,7 @@ Please write your answer in full sentences.
 (e) Predict the response on the test data, and produce a confusion matrix comparing the test labels to the predicted test labels. What is the test error rate?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -283,15 +316,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (f) Apply the `cv.tree()` function to the training set in order to determine the optimal tree size.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -299,15 +332,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (g) Produce a plot with tree size on the x-axis and cross-validated classification error rate on the y-axis.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -315,15 +348,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (h) Which tree size corresponds to the lowest cross-validated classification error rate?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -331,15 +364,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (i) Produce a pruned tree corresponding to the optimal tree size obtained using cross-validation. If cross-validation does not lead to selection of a pruned tree, then create a pruned tree with five terminal nodes.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -347,15 +380,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (j) Compare the training error rates between the pruned and unpruned trees. Which is higher?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -363,16 +396,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
-
+```
 
 (k) Compare the test error rates between the pruned and unpruned trees. Which is higher?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -380,11 +412,10 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 ### Hitters
 
@@ -393,10 +424,11 @@ We now use boosting to predict Salary in the Hitters data set.
 ```{r}
 data(Hitters,package = "ISLR2")
 ```
- 
-(a) Remove the observations for whom the salary information is unknown, and then log-transform the salaries. 
+
+(a) Remove the observations for whom the salary information is unknown, and then log-transform the salaries.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -404,15 +436,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (b) Create a training set consisting of the first 200 observations, and a test set consisting of the remaining observations.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -420,16 +452,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
+```
 
-~~~
-
-(c) Perform boosting on the training set with 1,000 trees for a range of values of the shrinkage parameter λ. Produce a plot with different shrinkage values on the x-axis and the corresponding
-training set MSE on the y-axis.
+(c) Perform boosting on the training set with 1,000 trees for a range of values of the shrinkage parameter λ. Produce a plot with different shrinkage values on the x-axis and the corresponding training set MSE on the y-axis.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -437,15 +468,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (d) Produce a plot with different shrinkage values on the x-axis and the corresponding test set MSE on the y-axis.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -453,15 +484,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (e) Compare the test MSE of boosting to the test MSE that results from applying two of the regression approaches seen in Chapters 3 and 6.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -469,15 +500,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (f) Which variables appear to be the most important predictors in the boosted model?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -485,15 +516,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 (g) Now apply bagging to the training set. What is the test set MSE for this approach?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -501,15 +532,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
+```
 
 ### Caravan
 
 This question uses the `Caravan` data set.
+
 ```{r}
 data(Caravan,package = "ISLR2")
 ```
@@ -517,6 +548,7 @@ data(Caravan,package = "ISLR2")
 (a) Create a training set consisting of the first 1,000 observations, and a test set consisting of the remaining observations.
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -525,6 +557,7 @@ Your code:
 (b) Fit a boosting model to the training set with Purchase as the response and the other variables as predictors. Use 1,000 trees, and a shrinkage value of 0.01. Which predictors appear to be the most important?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -532,16 +565,15 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
-
+```
 
 (c) Use the boosting model to predict the response on the test data. Predict that a person will make a purchase if the estimated probability of purchase is greater than 20 %. Form a confusion matrix. What fraction of the people predicted to make a purchase do in fact make one? How does this compare with the results obtained from applying KNN or logistic regression to this data set?
 
 Your code:
+
 ```{r,echo=TRUE}
 #
 #
@@ -549,17 +581,16 @@ Your code:
 
 Your answer:
 
-~~~
+```         
 Please write your answer in full sentences.
 
-
-~~~
-
+```
 
 ## Additional Material
 
 In this section we will look at other popular tree based methods that are readily available.
 For classification we will use the iris dataset.
+
 ```{r,fig.width=12,fig.height=10}
 trainIndex <- createDataPartition(iris$Species,p=.7,list=FALSE)
 trainData <- iris[trainIndex,]
@@ -589,12 +620,12 @@ rpart.ROC$auc
 plot(rpart.ROC)
 ```
 
-
 ### C-Tree
 
-Conditional inference trees (CTree) is a non-parametric class of regression trees embedding tree-structured regression models into a conditional inference procedures.  It is implemented in the R package `partykit`. 
+Conditional inference trees (CTree) is a non-parametric class of regression trees embedding tree-structured regression models into a conditional inference procedures.
+It is implemented in the R package `partykit`.
 You can read more detail here.
-https://cran.r-project.org/web/packages/partykit/vignettes/ctree.pdf
+<https://cran.r-project.org/web/packages/partykit/vignettes/ctree.pdf>
 
 ```{r,fig.width=12,fig.height=10}
 library(partykit)
@@ -616,13 +647,14 @@ ctree.ROC$auc
 plot(ctree.ROC,main="ctree ROC")
 ```
 
+### C4.5
 
-### C4.5 
-
-C4.5 is similar to CART and it had it's moments.  C4.5 is different from CART since they use Shannon Entropy to pick features with the most significant information gain as nodes compared to CART that uses Gini Impurity
+C4.5 is similar to CART and it had it's moments.
+C4.5 is different from CART since they use Shannon Entropy to pick features with the most significant information gain as nodes compared to CART that uses Gini Impurity
 
 Depending on your operating system RWeka might not work for you.
-And C4.5 is outdated.  You probably want to use C5.0, which is an improvement on C4.5.
+And C4.5 is outdated.
+You probably want to use C5.0, which is an improvement on C4.5.
 
 ```{r, eval=FALSE}
 # load the package
@@ -639,14 +671,15 @@ table(predictions, iris$Species)
 
 ### C5.0
 
-C5.0 is an extension of C4.5.  It is said to be
+C5.0 is an extension of C4.5.
+It is said to be
 
-- faster than C4.5 (several orders of magnitude)
-- more memory efficient than C4.5
-- Smaller decision trees compared to C4.5
-- Can perform boosting to improve accuracy.
-- Weighting: allows you to weight different cases and misclassification types.
-- Winnowing: automatically winnows the attributes to remove those that may be unhelpful.
+-   faster than C4.5 (several orders of magnitude)
+-   more memory efficient than C4.5
+-   Smaller decision trees compared to C4.5
+-   Can perform boosting to improve accuracy.
+-   Weighting: allows you to weight different cases and misclassification types.
+-   Winnowing: automatically winnows the attributes to remove those that may be unhelpful.
 
 ```{r}
 #http://machinelearningmastery.com/non-linear-classification-in-r-with-decision-trees/
@@ -662,30 +695,31 @@ print(fit1)
 predictions1 <- predict(fit1, iris)
 ```
 
-Summarizing the accuracy 
+Summarizing the accuracy
 
-- Without boosting
+-   Without boosting
+
 ```{r}
 table(predictions1, iris$Species)
 ```
 
-- With boosting
+-   With boosting
+
 ```{r}
 table(predict(fitb, iris), iris$Species)
 ```
-
 
 ### BART
 
 BART is a Bayesian “sum-of-trees” model.
 For numeric response $y$, we have $y_i = f(x_i) + e_i$, where $e_i\sim N(0,\sigma^2)$.
-For a binary response $y$, $P(Y=1 | x) = F(f(x))$, 
-where $F$ denotes the standard normal cdf (probit link).
+For a binary response $y$, $P(Y=1 | x) = F(f(x))$, where $F$ denotes the standard normal cdf (probit link).
 
-In both cases, $f$ is the sum of many tree models. 
+In both cases, $f$ is the sum of many tree models.
 The goal is to have flexible inference for the unknown function $f$.
 
 In the spirit of “ensemble models”, each tree is constrained by a prior distribution to be a weak learner so that it contributes a small amount to the overall fit.
+
 ```{r,fig.width=8,fig.height=8}
 library(BayesTree)
 iris_sub<-iris[iris$Species %in% c("setosa" ,"versicolor"),]
@@ -705,21 +739,24 @@ plot(bartFit) # plot bart fit
 
 ### XGBoost
 
-XGBoost became popular due to its success in Kaggle competitions.  It's essentially a gradient boosting but implemented to perform better out of the box.  Some of the nice features include:
+XGBoost became popular due to its success in Kaggle competitions.
+It's essentially a gradient boosting but implemented to perform better out of the box.
+Some of the nice features include:
 
-- Default regularization
-- Tree growing and pruning scheme allows for multiple cuts
-- Computational efficiency by parallelization
-- A couple of default choices to make it easier to use
-- Handles missing data
+-   Default regularization
+-   Tree growing and pruning scheme allows for multiple cuts
+-   Computational efficiency by parallelization
+-   A couple of default choices to make it easier to use
+-   Handles missing data
 
 However, if you want to go deeper, there are some challenges/concerns.
 
-- Hyperparameter tuning is hard
-- Missing data imputation scheme is concerning
-- Cannot handle categorical variables
+-   Hyperparameter tuning is hard
+-   Missing data imputation scheme is concerning
+-   Cannot handle categorical variables
 
 Here is it used for the iris data.
+
 ```{r}
 library( xgboost )
 xx     <- as.matrix( iris[,-5] )
@@ -735,32 +772,34 @@ bst    <- xgboost( data      = dtrain,
 predict( bst, newdata=dtrain ) 
 ```
 
-What gets unwieldy is when you start to tune the parameters.  
-Here is the list of parameters used.  Not all of them need tuning, but I hope you understand.
+What gets unwieldy is when you start to tune the parameters.\
+Here is the list of parameters used.
+Not all of them need tuning, but I hope you understand.
 
-- General Parameters that define the overall functionality of XGBoost.
-  - booster [default=gbtree]: type of model
-  - silent [default=0]: display log?
-  - nthread [default to the maximum number of threads available if not set]: number of cores
-- Learning Task Parameters define the optimization objective and the metric to be calculated at each step.
-  - objective [default=reg:linear] the loss function to be minimized. 
-  - eval_metric [ default according to objective ] The metric for validation data.
-  - seed [default=0] The random number seed.
-- Booster Parameters
-  - eta [default=0.3]. Analogous to the learning rate in GBM
-  - min_child_weight [default=1] is the minimum sum of weights of all observations required in a child.
-  - max_depth [default=6] The maximum depth of a tree, same as GBM.
-  - max_leaf_nodes  The maximum number of terminal nodes or leaves in a tree.
-  - gamma [default=0] is the minimum loss reduction required to make a split.
-  - max_delta_step [default=0]  If it is set to a positive value makes the update step more conservative.
-  - subsample [default=1] the fraction of observations randomly sampled for each tree.
-  - colsample_bytree [default=1] is the fraction of columns randomly sampled for each tree.
-  - colsample_bylevel [default=1] the subsample ratio of columns for each split, in each level.
-  - lambda [default=1]  L2 regularization term on weights (analogous to Ridge regression)
-  - alpha [default=0] L1 regularization term on weight (analogous to Lasso regression)
-  - scale_pos_weight [default=1] >0 for high class imbalance as it helps in faster convergence.
+-   General Parameters that define the overall functionality of XGBoost.
+    -   booster [default=gbtree]: type of model
+    -   silent [default=0]: display log?
+    -   nthread [default to the maximum number of threads available if not set]: number of cores
+-   Learning Task Parameters define the optimization objective and the metric to be calculated at each step.
+    -   objective [default=reg:linear] the loss function to be minimized.
+    -   eval_metric [ default according to objective ] The metric for validation data.
+    -   seed [default=0] The random number seed.
+-   Booster Parameters
+    -   eta [default=0.3]. Analogous to the learning rate in GBM
+    -   min_child_weight [default=1] is the minimum sum of weights of all observations required in a child.
+    -   max_depth [default=6] The maximum depth of a tree, same as GBM.
+    -   max_leaf_nodes The maximum number of terminal nodes or leaves in a tree.
+    -   gamma [default=0] is the minimum loss reduction required to make a split.
+    -   max_delta_step [default=0] If it is set to a positive value makes the update step more conservative.
+    -   subsample [default=1] the fraction of observations randomly sampled for each tree.
+    -   colsample_bytree [default=1] is the fraction of columns randomly sampled for each tree.
+    -   colsample_bylevel [default=1] the subsample ratio of columns for each split, in each level.
+    -   lambda [default=1] L2 regularization term on weights (analogous to Ridge regression)
+    -   alpha [default=0] L1 regularization term on weight (analogous to Lasso regression)
+    -   scale_pos_weight [default=1] \>0 for high class imbalance as it helps in faster convergence.
 
 Because of this, there is an automatic versiong of xgboost that does the parameter tuning for you.
+
 ```{r,eval=FALSE}
 trainData <- iris[trainIndex,]
 testData  <- iris[-trainIndex,]
@@ -783,18 +822,17 @@ plot(prediction$data[,1],prediction$data[,2])
 #caret::confusionMatrix(test$Species, prediction$data$response)
 ```
 
-
 ### catboost
 
 Catboost is another popular boosting method that in my view popular due to well thought out implementation.
 The three features that distingishes itself from the other similar models are
 
-- Symmetric tree
-- Ordered Boosting
-- Categorical Feature Engineering
+-   Symmetric tree
+-   Ordered Boosting
+-   Categorical Feature Engineering
 
+<https://catboost.ai/en/docs/concepts/r-usages-examples>
 
- https://catboost.ai/en/docs/concepts/r-usages-examples
 ```{r, eval=FALSE}
 library(catboost)
 # load data
@@ -870,4 +908,3 @@ stacked.model <- caretStack( model_list, method="glm")
 predict(stacked.model,testing)
 
 ```
-
